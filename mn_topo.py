@@ -18,14 +18,17 @@ from mininet.link import TCLink
 class Topology(Topo):
 
     def build(self):
-        pc1 = self.addHost("pc1", ip="192.168.1.11/24")
-        voip1 = self.addHost("v1", ip="192.168.1.12/24")
-        pc2 = self.addHost("pc2", ip="192.168.1.21/24")
-        voip2 = self.addHost("v2", ip="192.168.1.22/24")
-        pc3 = self.addHost("pc3", ip="192.168.1.31/24")
-        voip3 = self.addHost("v3", ip="192.168.1.32/24")
-        pc4 = self.addHost("pc4", ip="192.168.1.41/24")
-        voip4 = self.addHost("v4", ip="192.168.1.42/24")
+        h1 = self.addHost("h1", ip="192.168.1.11/24")
+        h2 = self.addHost("h2", ip="192.168.1.12/24")
+        h3 = self.addHost("h3", ip="192.168.1.21/24")
+        h4 = self.addHost("h4", ip="192.168.1.22/24")
+        h5 = self.addHost("h5", ip="192.168.1.31/24")
+        h6 = self.addHost("h6", ip="192.168.1.32/24")
+        h7 = self.addHost("h7", ip="192.168.1.41/24")
+        h8 = self.addHost("h8", ip="192.168.1.42/24")
+
+        #prova1 = self.addHost("p1",ip="192.168.2.21/24")
+        #prova2 = self.addHost("p2",ip="192.168.2.22/24")
 
 
         for i in range(5):
@@ -37,16 +40,22 @@ class Topology(Topo):
         self.addLink("s1","s3")
         self.addLink("s1","s4")
         self.addLink("s1","s5")
-        #collego voip agli switch per i voip
-        self.addLink("s2","v1")
-        self.addLink("s2","v2")
-        self.addLink("s3","v3")
-        self.addLink("s3","v4")
-        #collego pc agli switch dati
-        self.addLink("s4","pc1")
-        self.addLink("s4","pc2")
-        self.addLink("s5","pc3")
-        self.addLink("s5","pc4")
+        #self.addLink("s2","s3")
+        #self.addLink("s4","s5")
+        #collego pc agli switch per office1
+        self.addLink("s2","h1")
+        self.addLink("s2","h2")
+        self.addLink("s3","h3")
+        self.addLink("s3","h4")
+        #collego pc agli switch per office2
+        self.addLink("s4","h5")
+        self.addLink("s4","h6")
+        self.addLink("s5","h7")
+        self.addLink("s5","h8")
+
+        #test
+        #self.addLink("s1","p1")
+        #self.addLink("s1","p2")
 
 def runTopo():
     topo = Topology()
@@ -61,7 +70,8 @@ def runTopo():
     controller = RemoteController("c1", ip="127.0.0.1", port=6633)
     net.addController(controller)
     net.start()
-
+    for h in net.hosts:
+        h.cmd("iperf -s -p 5096 -u &")
     CLI(net)
 
     # After the user exits the CLI, shutdown the network.

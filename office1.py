@@ -6,24 +6,20 @@ from ryu.ofproto import ofproto_v1_0
 
 from ryu.lib.mac import haddr_to_bin
 from ryu.lib.packet import packet
-from ryu.lib.packet import ethernet,udp
+from ryu.lib.packet import ethernet, udp
 from ryu.lib.packet import ether_types
 
 
-class Controller(app_manager.RyuApp):
+class Office1(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(Controller, self).__init__(*args, **kwargs)
+        super(Office1, self).__init__(*args, **kwargs)
 
         # out_port = slice_to_port[dpid][in_port]
-        #self.mac_to_port = {4:{},5:{}}
-        self.mac_to_port = {1:{}}
-        self.slice_to_port = {
-            1: {3:4,4:3,1:2,2:1,5:0,6:0}
-        }
+        self.mac_to_port = {2:{},3:{}}
         
-        self.end_switches = [4,5]
+        
 
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
@@ -80,38 +76,25 @@ class Controller(app_manager.RyuApp):
 
         # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
         self.logger.info("INFO packet arrived in s%s (in_port=%s)", dpid, in_port)
-        if dpid in self.mac_to_port:
-            
-            if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5096)or(pkt.get_protocol(udp.udp).src_port == 5096)):
-                self.logger.info("Pacchetto VOIP")
-                self.mac_to_port[dpid][src] = in_port
-           
-                if dst in self.mac_to_port[dpid]:
-                    out_port = self.mac_to_port[dpid][dst]
-                    self.logger.info(
-                        "INFO sending packet from s%s (out_port=%s) w/ mac-to-port rule",
-                        dpid,
-                        out_port,
-                    )
-                else:
-                    out_port = ofproto.OFPP_FLOOD
-                actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                #match = datapath.ofproto_parser.OFPMatch(dl_dst=dst)
-                #self.add_flow(datapath, 2, match, actions)
-                self._send_package(msg, datapath, in_port, actions)
-            else:
-                self.logger.info("Pacchetto GENERICO")
-                out_port = self.slice_to_port[dpid][in_port]
-                if out_port != 0:
-                    self.logger.info("POTA")
-                    actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                    #match = datapath.ofproto_parser.OFPMatch(in_port=in_port)
-                    #self.add_flow(datapath, 1, match, actions)
-                    self._send_package(msg, datapath, in_port, actions)
-
-
-
+        #if (pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).dst_port == 5096) or (pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).src_port == 5096):
         
+
+        if dpid in self.mac_to_port:
+            self.mac_to_port[dpid][src] = in_port
+            #self.logger.info("dest in {}, {}".format(dpid,self.mac_to_port[dpid]))
+            if dst in self.mac_to_port[dpid]:
+                out_port = self.mac_to_port[dpid][dst]
+                self.logger.info(
+                    "INFO sending packet from s%s (out_port=%s) w/ mac-to-port rule",
+                    dpid,
+                    out_port,
+                )
+            else:
+                out_port = ofproto.OFPP_FLOOD
+            actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
+            match = datapath.ofproto_parser.OFPMatch(dl_dst=dst)
+            self.add_flow(datapath, 1, match, actions)
+            self._send_package(msg, datapath, in_port, actions)
 
 
        
