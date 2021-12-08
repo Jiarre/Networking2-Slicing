@@ -18,12 +18,10 @@ class Controller(app_manager.RyuApp):
 
         # out_port = slice_to_port[dpid][in_port]
         #self.mac_to_port = {4:{},5:{}}
-        self.mac_to_port = {1:{}}
-        self.slice_to_port = {
-            1: {3:4,4:3,1:2,2:1,5:0,6:0}
-        }
+        self.mac_to_port = {6:{}}
         
-        self.end_switches = [4,5]
+        
+        
 
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
@@ -101,7 +99,10 @@ class Controller(app_manager.RyuApp):
                 self._send_package(msg, datapath, in_port, actions)
             else:
                 self.logger.info("Pacchetto GENERICO")
-                out_port = self.slice_to_port[dpid][in_port]
+                if dst in self.mac_to_port[dpid]:
+                    out_port = self.mac_to_port[dpid][dst]
+                else:
+                    out_port = ofproto.OFPP_FLOOD
                 if out_port != 0:
                     self.logger.info("POTA")
                     actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]

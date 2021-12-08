@@ -33,6 +33,7 @@ echo "Definition of FlowVisor slices..."
 fvctl -f /etc/flowvisor/flowvisor.passwd add-slice office1 tcp:localhost:10001 admin@office1
 fvctl -f /etc/flowvisor/flowvisor.passwd add-slice office2 tcp:localhost:10002 admin@office2
 fvctl -f /etc/flowvisor/flowvisor.passwd add-slice controller tcp:localhost:10003 admin@controller
+fvctl -f /etc/flowvisor/flowvisor.passwd add-slice office3 tcp:localhost:10004 admin@office3
 
 # Check defined slices
 echo "Check slices just defined:"
@@ -52,6 +53,8 @@ fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid3 3 1 any office1=7
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid4 4 1 any office2=7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid5 5 1 any office2=7
+
+fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid5 6 1 any office3=7
 
 # Check all the flowspaces added
 echo "Check all flowspaces just defined:"
