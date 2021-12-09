@@ -29,26 +29,29 @@ class Topology(Topo):
         r2 = self.addHost("r2",cls=LinuxRouter,ip="192.168.2.1/24")
 
 
-        h1 = self.addHost("h1", ip="192.168.1.11/24",defaultRoute='via 192.168.1.1')
-        h2 = self.addHost("h2", ip="192.168.1.12/24",defaultRoute='via 192.168.1.1')
-        h3 = self.addHost("h3", ip="192.168.1.21/24",defaultRoute='via 192.168.1.1')
-        h4 = self.addHost("h4", ip="192.168.1.22/24",defaultRoute='via 192.168.1.1')
-        h5 = self.addHost("h5", ip="192.168.1.31/24",defaultRoute='via 192.168.1.1')
-        h6 = self.addHost("h6", ip="192.168.1.32/24",defaultRoute='via 192.168.1.1')
-        h7 = self.addHost("h7", ip="192.168.1.41/24",defaultRoute='via 192.168.1.1')
-        h8 = self.addHost("h8", ip="192.168.1.42/24",defaultRoute='via 192.168.1.1')
+        h1 = self.addHost("a3", ip="192.168.1.21/24",defaultRoute='via 192.168.1.1')
+        h2 = self.addHost("a4", ip="192.168.1.41/24",defaultRoute='via 192.168.1.1')
+        h3 = self.addHost("h1", ip="192.168.1.22/24",defaultRoute='via 192.168.1.1')
+        h4 = self.addHost("h2", ip="192.168.1.31/24",defaultRoute='via 192.168.1.1')
+        h5 = self.addHost("h3", ip="192.168.1.32/24",defaultRoute='via 192.168.1.1')
+        h6 = self.addHost("h4", ip="192.168.1.42/24",defaultRoute='via 192.168.1.1')
+        h7 = self.addHost("h5", ip="192.168.1.51/24",defaultRoute='via 192.168.1.1')
+        h8 = self.addHost("h6", ip="192.168.1.52/24",defaultRoute='via 192.168.1.1')
 
-        h9 = self.addHost("h9", ip="192.168.2.11/24",defaultRoute='via 192.168.2.1')
-        h10 = self.addHost("h10", ip="192.168.2.12/24",defaultRoute='via 192.168.2.1')
-        h11 = self.addHost("h11", ip="192.168.2.13/24",defaultRoute='via 192.168.2.1')
-        h12 = self.addHost("h12", ip="192.168.2.14/24",defaultRoute='via 192.168.2.1')
+        h9 = self.addHost("a1", ip="192.168.2.61/24",defaultRoute='via 192.168.2.1')
+        h10 = self.addHost("a2", ip="192.168.2.62/24",defaultRoute='via 192.168.2.1')
+
+        h11 = self.addHost("it1", ip="192.168.1.73/24",defaultRoute='via 192.168.1.1')
+        h12 = self.addHost("it2", ip="192.168.1.74/24",defaultRoute='via 192.168.1.1')
+
+        h13 = self.addHost("ftp", ip="192.168.1.75/24",defaultRoute='via 192.168.1.1')
         
 
         #prova1 = self.addHost("p1",ip="192.168.2.21/24")
         #prova2 = self.addHost("p2",ip="192.168.2.22/24")
 
 
-        for i in range(6):
+        for i in range(7):
             sconfig = {"dpid": "%016x" % (i + 1)}
             self.addSwitch("s%d" % (i + 1), protocols="OpenFlow10", **sconfig)
 
@@ -60,30 +63,34 @@ class Topology(Topo):
         #self.addLink("s2","s3")
         #self.addLink("s4","s5")
         #collego pc agli switch per office1
+        self.addLink("s2","a3")
         self.addLink("s2","h1")
-        self.addLink("s2","h2")
+        self.addLink("s3","h2")
         self.addLink("s3","h3")
-        self.addLink("s3","h4")
         #collego pc agli switch per office2
-        self.addLink("s4","h5")
-        self.addLink("s4","h6")
-        self.addLink("s5","h7")
-        self.addLink("s5","h8")
+        self.addLink("s4","a4")
+        self.addLink("s4","h4")
+        self.addLink("s5","h5")
+        self.addLink("s5","h6")
 
-        self.addLink("s6","h9")
-        self.addLink("s6","h10")
-        self.addLink("s6","h11")
-        self.addLink("s6","h12")
+        self.addLink("s6","a1")
+        self.addLink("s6","a2")
+
+        self.addLink("s7","it1")
+        self.addLink("s7","it2")
+        self.addLink("s7","ftp")
         
         self.addLink("s1","r1",intfName2='r1-eth1',params2={'ip':'192.168.1.1/24'})
         self.addLink("s6","r2",intfName2='r2-eth1',params2={'ip':'192.168.2.1/24'})
+        self.addLink("s1","s7")
+
         self.addLink(r1,
                      r2,
                      intfName1='r1-eth2',
                      intfName2='r2-eth2',
                      params1={'ip': '10.100.0.1/24'},
                      params2={'ip': '10.100.0.2/24'})
-                    
+              
         #test
         #self.addLink("s1","p1")
         #self.addLink("s1","p2")

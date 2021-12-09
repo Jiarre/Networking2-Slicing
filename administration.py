@@ -6,18 +6,36 @@ from ryu.ofproto import ofproto_v1_0
 
 from ryu.lib.mac import haddr_to_bin
 from ryu.lib.packet import packet
-from ryu.lib.packet import ethernet, udp
+from ryu.lib.packet import ethernet,udp,tcp
 from ryu.lib.packet import ether_types
 
 
-class Office1(app_manager.RyuApp):
+class Controller(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(Office1, self).__init__(*args, **kwargs)
+        super(Controller, self).__init__(*args, **kwargs)
 
         # out_port = slice_to_port[dpid][in_port]
-        self.mac_to_port = {2:{},3:{}}
+        #self.mac_to_port = {4:{},5:{}}
+        self.mac_to_port = {
+            6:{
+            "00:00:00:00:00:01":1,
+            "00:00:00:00:00:02":2
+            },
+            2:{
+            "00:00:00:00:00:03":2
+            },
+            4:{
+            "00:00:00:00:00:04":2
+            },
+            7:{
+            "00:00:00:00:00:05":3
+            }
+
+        }
+        
+        self.end_switches = [2,4,7,6]
         
         
 
@@ -73,28 +91,26 @@ class Office1(app_manager.RyuApp):
         dst = eth.dst
         src = eth.src
         
-
+        self.logger.info(f"ADM NOW switch {dpid} in port {in_port}")
         # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
-        self.logger.info("INFO packet arrived in s%s (in_port=%s)", dpid, in_port)
-        #if (pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).dst_port == 5096) or (pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).src_port == 5096):
-        
-
-        if dpid in self.mac_to_port:
-            self.mac_to_port[dpid][src] = in_port
-            #self.logger.info("dest in {}, {}".format(dpid,self.mac_to_port[dpid]))
-            if dst in self.mac_to_port[dpid]:
-                out_port = self.mac_to_port[dpid][dst]
-                self.logger.info(
-                    "INFO sending packet from s%s (out_port=%s) w/ mac-to-port rule",
-                    dpid,
-                    out_port,
-                )
-            else:
-                out_port = ofproto.OFPP_FLOOD
+        if (dpid in self.mac_to_port) and (dst in self.mac_to_port[dpid]):
+            self.logger.info("ADM Pacchetto arrivato in endswitch")
+            out_port = self.mac_to_port[dpid][dst]
+            actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
+            
+            self._send_package(msg, datapath, in_port, actions)
+        else:
+            out_port = ofproto.OFPP_FLOOD
+            self.logger.info("ADM Flooding")
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
             #match = datapath.ofproto_parser.OFPMatch(in_port=in_port)
             #self.add_flow(datapath, 1, match, actions)
             self._send_package(msg, datapath, in_port, actions)
+
+
+
+
+        
 
 
        
