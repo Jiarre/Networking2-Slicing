@@ -80,7 +80,7 @@ class Controller(app_manager.RyuApp):
         self.logger.info("INFO packet arrived in s%s (in_port=%s)", dpid, in_port)
         if dpid in self.mac_to_port:
             self.mac_to_port[dpid][src] = in_port
-            if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5090)or(pkt.get_protocol(udp.udp).src_port == 5090)):
+            if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
                 self.logger.info("ADMINISTRATION Pacchetto VOIP")
                 
            
@@ -102,8 +102,12 @@ class Controller(app_manager.RyuApp):
                 if out_port != 0:
                     
                     actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                    #match = datapath.ofproto_parser.OFPMatch(in_port=in_port)
-                    #self.add_flow(datapath, 1, match, actions)
+                    """match = datapath.ofproto_parser.OFPMatch(
+                    in_port=in_port,
+                    dl_dst=dst,
+                    dl_src=src,
+                    nw_proto=0x01,
+                    )"""
                     self._send_package(msg, datapath, in_port, actions)
 
 

@@ -6,7 +6,7 @@ from ryu.ofproto import ofproto_v1_0
 
 from ryu.lib.mac import haddr_to_bin
 from ryu.lib.packet import packet
-from ryu.lib.packet import ethernet,udp,tcp
+from ryu.lib.packet import ethernet,udp
 from ryu.lib.packet import ether_types
 
 
@@ -16,31 +16,8 @@ class Controller(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__(*args, **kwargs)
 
-        # out_port = slice_to_port[dpid][in_port]
-        #self.mac_to_port = {4:{},5:{}}
-        self.mac_to_port = {
-            6:{
-            "00:00:00:00:00:01":1,
-            "00:00:00:00:00:02":2
-            },
-            2:{
-            "00:00:00:00:00:03":2
-            },
-            4:{
-            "00:00:00:00:00:04":2
-            },
-            7:{
-            "00:00:00:00:00:05":3
-            }
-
-        }
-        self.slice_to_port = {
-            2:{2:1,1:2},
-            4:{2:1,1:2},
-            7:{3:4,4:3}
-        }
+        self.mac_to_port = {1:{},2:{},3:{},4:{},5:{},6:{},7:{}}
         
-        self.end_switches = [2,4,7,6]
         
         
 
@@ -95,44 +72,28 @@ class Controller(app_manager.RyuApp):
             return
         dst = eth.dst
         src = eth.src
+        
         flag = 0
-        if pkt.get_protocol(tcp.tcp).dst_port == 21:
+        if src == "00:00:00:00:00:0c" or src == "00:00:00:00:00:0d":
             flag = 1
-        self.logger.info(f"ADM NOW switch {dpid} in port {in_port}")
         # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
-        if (dpid in self.mac_to_port):
-            if dpid in self.slice_to_port and in_port in self.slice_to_port[dpid]:
-                self.logger.info("ADM sliced")
-                out_port = self.slice_to_port[dpid][in_port]
-            elif dst in self.mac_to_port[dpid] :
-
-                self.logger.info("ADM Pacchetto arrivato in endswitch")
+        self.logger.info("IT packet arrived in s%s (in_port=%s)", dpid, in_port)
+        if dpid in self.mac_to_port:
+            self.mac_to_port[dpid][src] = in_port
+                
+            if dst in self.mac_to_port[dpid]:
                 out_port = self.mac_to_port[dpid][dst]
+                
             else:
                 out_port = ofproto.OFPP_FLOOD
+                
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
             """if flag == 0:
-                match = datapath.ofproto_parser.OFPMatch(
-                    in_port=in_port,
-                    dl_dst=dst,
-                    dl_src=src,
-                    tp_src=21,
-                )
+                match = datapath.ofproto_parser.OFPMatch(dl_dst=dst)
             else:
-                match = datapath.ofproto_parser.OFPMatch(
-                    in_port=in_port,
-                    dl_dst=dst,
-                    dl_src=src,
-                    tp_dst=21,
-                )
+                match = datapath.ofproto_parser.OFPMatch(dl_src=dst)
             self.add_flow(datapath, 1, match, actions)"""
             self._send_package(msg, datapath, in_port, actions)
-        else:
-            out_port = ofproto.OFPP_FLOOD
-            self.logger.info("ADM Flooding")
-            actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-            self._send_package(msg, datapath, in_port, actions)
-
 
 
 

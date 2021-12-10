@@ -80,9 +80,12 @@ class Controller(app_manager.RyuApp):
 
         # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
         self.logger.info("CONTROLLER packet arrived in s%s (in_port=%s)", dpid, in_port)
+        flag = 0
+        if pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).dst_port == 5060:
+            flag = 1
         if dpid in self.mac_to_port:
             self.mac_to_port[dpid][src] = in_port
-            if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5090)or(pkt.get_protocol(udp.udp).src_port == 5090)):
+            if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
                 self.logger.info("CONTROLLER Pacchetto VOIP")
                 
            
@@ -93,8 +96,23 @@ class Controller(app_manager.RyuApp):
                     self.logger.info("CONTROLLER Flooding pacchetto VOIP")
                     out_port = ofproto.OFPP_FLOOD
                 actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                #match = datapath.ofproto_parser.OFPMatch(dl_dst=dst)
-                #self.add_flow(datapath, 2, match, actions)
+                """if flag == 0:
+
+                    match = datapath.ofproto_parser.OFPMatch(
+                        in_port=in_port,
+                        dl_dst=dst,
+                        dl_src=src,
+                        tp_src=5060,
+                    )
+                else:
+                     match = datapath.ofproto_parser.OFPMatch(
+                        in_port=in_port,
+                        dl_dst=dst,
+                        dl_src=src,
+                        tp_dst=5060,
+                    )
+
+                self.add_flow(datapath, 2, match, actions)"""
                 self._send_package(msg, datapath, in_port, actions)
             
             else:

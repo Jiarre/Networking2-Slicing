@@ -111,8 +111,13 @@ def runTopo():
     net.start()
     net['r1'].cmd("sudo ip route add 192.168.2.0/24 via 10.100.0.2 dev r1-eth2")
     net['r2'].cmd("sudo ip route add 192.168.1.0/24 via 10.100.0.1 dev r2-eth2")
+    net['a1'].cmd("iperf -s -p 21 &")
+    net['a2'].cmd("iperf -s -p 21 &")
+    net['a3'].cmd("iperf -s -p 21 &")
+    net['a4'].cmd("iperf -s -p 21 &")
+    net['ftp'].cmd("iperf -s -p 21 &")
     for h in net.hosts:
-        h.cmd("iperf -s -p 5090 -u &")
+        h.cmd("iperf -s -p 5060 -u &")
     
     CLI(net)
 
