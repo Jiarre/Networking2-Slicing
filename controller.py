@@ -96,7 +96,7 @@ class Controller(app_manager.RyuApp):
                     self.logger.info("CONTROLLER Flooding pacchetto VOIP")
                     out_port = ofproto.OFPP_FLOOD
                 actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                """if flag == 0:
+                if flag == 0:
 
                     match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
@@ -105,14 +105,14 @@ class Controller(app_manager.RyuApp):
                         tp_src=5060,
                     )
                 else:
-                     match = datapath.ofproto_parser.OFPMatch(
+                    match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
                         dl_dst=dst,
                         dl_src=src,
                         tp_dst=5060,
                     )
 
-                self.add_flow(datapath, 2, match, actions)"""
+                self.add_flow(datapath, 1, match, actions)
                 self._send_package(msg, datapath, in_port, actions)
             
             else:
@@ -121,8 +121,13 @@ class Controller(app_manager.RyuApp):
                 if out_port != 0:
                     self.logger.info("CONTROLLER invio GENERICO")
                     actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                    #match = datapath.ofproto_parser.OFPMatch(in_port=in_port)
-                    #self.add_flow(datapath, 1, match, actions)
+                    match = datapath.ofproto_parser.OFPMatch(
+                        in_port=in_port,
+                        dl_dst=dst,
+                        dl_src=src,
+                        tp_dst=5060,
+                    )
+                    self.add_flow(datapath, 1, match, actions)
                     self._send_package(msg, datapath, in_port, actions)
 
 

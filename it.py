@@ -91,8 +91,8 @@ class Controller(app_manager.RyuApp):
             """if flag == 0:
                 match = datapath.ofproto_parser.OFPMatch(dl_dst=dst)
             else:
-                match = datapath.ofproto_parser.OFPMatch(dl_src=dst)
-            self.add_flow(datapath, 1, match, actions)"""
+                match = datapath.ofproto_parser.OFPMatch(dl_src=dst)"""
+            #self.add_flow(datapath, 1, match, actions)
             self._send_package(msg, datapath, in_port, actions)
 
 

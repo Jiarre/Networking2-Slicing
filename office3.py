@@ -102,12 +102,13 @@ class Controller(app_manager.RyuApp):
                 if out_port != 0:
                     
                     actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                    """match = datapath.ofproto_parser.OFPMatch(
+                    match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,
                     dl_dst=dst,
                     dl_src=src,
                     nw_proto=0x01,
-                    )"""
+                    )
+                    self.add_flow(datapath, 1, match, actions)
                     self._send_package(msg, datapath, in_port, actions)
 
 

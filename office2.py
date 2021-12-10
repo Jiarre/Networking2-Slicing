@@ -94,7 +94,13 @@ class Office2(app_manager.RyuApp):
             else:
                 out_port = ofproto.OFPP_FLOOD
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-           
+            match = datapath.ofproto_parser.OFPMatch(
+                    in_port=in_port,
+                    dl_dst=dst,
+                    dl_src=src,
+                    nw_proto=0x01,
+                )
+            self.add_flow(datapath, 1, match, actions)
             self._send_package(msg, datapath, in_port, actions)
 
 

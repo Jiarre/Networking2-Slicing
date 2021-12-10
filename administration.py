@@ -111,7 +111,7 @@ class Controller(app_manager.RyuApp):
             else:
                 out_port = ofproto.OFPP_FLOOD
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-            """if flag == 0:
+            if flag == 0:
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,
                     dl_dst=dst,
@@ -125,12 +125,20 @@ class Controller(app_manager.RyuApp):
                     dl_src=src,
                     tp_dst=21,
                 )
-            self.add_flow(datapath, 1, match, actions)"""
+            self.add_flow(datapath, 1, match, actions)
             self._send_package(msg, datapath, in_port, actions)
         else:
             out_port = ofproto.OFPP_FLOOD
             self.logger.info("ADM Flooding")
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
+            match = datapath.ofproto_parser.OFPMatch(
+                        in_port=in_port,
+                        dl_dst=dst,
+                        dl_src=src,
+                        tp_dst=5060,
+                    )
+            self.add_flow(datapath, 1, match, actions)
+            
             self._send_package(msg, datapath, in_port, actions)
 
 
