@@ -47,7 +47,7 @@ def main(argv):
                 print("VOIP ERROR ")
             else:
 
-                print("VoIP response from "+ args )
+                print("VoIP response from "+arg )
         elif opt == '-f':
             output = subprocess.run(['iperf', '-c',  arg, '-p',  '21' , '-t' , '2' ,'-i', '1'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             if 'connected' in output:
