@@ -42,6 +42,7 @@ class Controller(app_manager.RyuApp):
             actions=actions,
         )
         datapath.send_msg(mod)
+        self.logger.info("CONTROLLER Flow added")
 
     def _send_package(self, msg, datapath, in_port, actions):
         data = None
@@ -76,59 +77,52 @@ class Controller(app_manager.RyuApp):
             return
         dst = eth.dst
         src = eth.src
-        
-
-        # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
         self.logger.info("CONTROLLER packet arrived in s%s (in_port=%s)", dpid, in_port)
-        flag = 0
-        if pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).dst_port == 5060:
-            flag = 1
-        if dpid in self.mac_to_port:
-            self.mac_to_port[dpid][src] = in_port
-            if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
+        if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
                 self.logger.info("CONTROLLER Pacchetto VOIP")
-                
+                flag = 0
+                if pkt.get_protocol(udp.udp).dst_port == 5060:
+                    flag = 1
            
                 if dst in self.mac_to_port[dpid]:
                     out_port = self.mac_to_port[dpid][dst]
-                    self.logger.info("CONTROLLER Invio pacchetto VOIP")
                 else:
-                    self.logger.info("CONTROLLER Flooding pacchetto VOIP")
                     out_port = ofproto.OFPP_FLOOD
                 actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                if flag == 0:
-
+                
+                if flag == 1:
                     match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
+                        tp_dst = 5060,
                         dl_dst=dst,
-                        dl_src=src,
-                        tp_src=5060,
+                        dl_src=src  
                     )
                 else:
                     match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
+                        tp_src = 5060,
                         dl_dst=dst,
-                        dl_src=src,
-                        tp_dst=5060,
+                        dl_src=src
                     )
-
-                self.add_flow(datapath, 1, match, actions)
+                if out_port != ofproto.OFPP_FLOOD:
+                
+                    self.add_flow(datapath, 3, match, actions)
                 self._send_package(msg, datapath, in_port, actions)
-            
-            else:
-                self.logger.info("CONTROLLER Pacchetto GENERICO")
-                out_port = self.slice_to_port[dpid][in_port]
-                if out_port != 0:
-                    self.logger.info("CONTROLLER invio GENERICO")
-                    actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                    match = datapath.ofproto_parser.OFPMatch(
+        elif dpid in self.mac_to_port:
+            self.mac_to_port[dpid][src] = in_port
+            #self.logger.info(f"CONTROLLER Pacchetto GENERICO, porta {pkt.get_protocol(udp.udp)}")
+            out_port = self.slice_to_port[dpid][in_port]
+            if out_port != 0:
+                self.logger.info("CONTROLLER invio pacchetto GENERICO")
+                actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
+                match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
                         dl_dst=dst,
                         dl_src=src,
-                        tp_dst=5060,
+                        nw_proto=0x01
                     )
-                    self.add_flow(datapath, 1, match, actions)
-                    self._send_package(msg, datapath, in_port, actions)
+                #self.add_flow(datapath, 1, match, actions)
+                self._send_package(msg, datapath, in_port, actions)
 
 
 

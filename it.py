@@ -37,7 +37,9 @@ class Controller(app_manager.RyuApp):
             flags=ofproto.OFPFF_SEND_FLOW_REM,
             actions=actions,
         )
+        
         datapath.send_msg(mod)
+        self.logger.info("IT Flow added")
 
     def _send_package(self, msg, datapath, in_port, actions):
         data = None
@@ -88,11 +90,14 @@ class Controller(app_manager.RyuApp):
                 out_port = ofproto.OFPP_FLOOD
                 
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-            """if flag == 0:
-                match = datapath.ofproto_parser.OFPMatch(dl_dst=dst)
-            else:
-                match = datapath.ofproto_parser.OFPMatch(dl_src=dst)"""
-            #self.add_flow(datapath, 1, match, actions)
+            if out_port != ofproto.OFPP_FLOOD:
+                match = datapath.ofproto_parser.OFPMatch(
+                    in_port=in_port,
+                    dl_dst=dst,
+                    dl_src=src
+                    
+                )
+                self.add_flow(datapath, 1, match, actions)
             self._send_package(msg, datapath, in_port, actions)
 
 
