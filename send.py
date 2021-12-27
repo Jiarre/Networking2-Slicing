@@ -5,23 +5,23 @@ import subprocess
 
 def main(argv):
     list = {
-        'h1' : "192.168.1.22",
-        'h2' : "192.168.1.31",
-        'h3' : "192.168.1.32",
-        'h4' : "192.168.1.42",
-        'h5' : "192.168.1.51",
-        'h6' : "192.168.1.52",
-        'a1' : "192.168.2.61",
-        'a2' : "192.168.2.62",
-        'a3' : "192.168.1.21",
-        'a4' : "192.168.1.41",
-        'it1' : "192.168.1.73",
-        'it2' : "192.168.1.74",
-        'ftp' : "192.168.1.75",
+        'h1' : "192.168.2.22",
+        'h2' : "192.168.2.31",
+        'h3' : "192.168.2.32",
+        'h4' : "192.168.2.42",
+        'h5' : "192.168.2.51",
+        'h6' : "192.168.2.52",
+        'a1' : "192.168.3.61",
+        'a2' : "192.168.3.62",
+        'a3' : "192.168.2.21",
+        'a4' : "192.168.2.41",
+        'it1' : "192.168.2.73",
+        'it2' : "192.168.2.74",
+        'sftp' : "192.168.2.75",
     }
 
     try:
-      opts, args = getopt.getopt(argv,"hc:p:f:")
+      opts, args = getopt.getopt(argv,"hc:p:s:")
     except getopt.GetoptError:
       print('send.py -c destination \nsend.py -p destination \nsend.py -h \nsend.py -s destination')
       sys.exit(2)
@@ -42,25 +42,25 @@ def main(argv):
 
         # call voip
         elif opt == '-c':
-            output = subprocess.run(['iperf', '-c',  arg, '-p',  '5060' , '-u' , '-t' , '2' ,'-i', '1'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            output = subprocess.run(['iperf', '-c',  arg, '-p',  '5060' , '-u' , '-t' , '1'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             if 'WARNING' in output:
                 print("VOIP ERROR ")
             else:
 
                 print("VoIP response from "+arg )
-        elif opt == '-f':
-            output = subprocess.run(['iperf', '-c',  arg, '-p',  '21' , '-t' , '2' ,'-i', '1'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        elif opt == '-s':
+            output = subprocess.run(['iperf', '-c',  arg, '-p',  '22' , '-t' , '1'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             if 'connected' in output:
-                print("FTP response from "+arg)
+                print("SFTP response from "+arg)
             else:
 
-                print("FTP ERROR")
+                print("SFTP ERROR")
         # ping
         elif opt == '-p':
-            output = subprocess.run(['ping' , '-c', '3', arg], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            output = subprocess.run(['ping' , '-c', '1', arg], stdout=subprocess.PIPE).stdout.decode('utf-8')
             if "0 received" in output:
                 print("PING ERROR "+arg)
-            elif '3 received' in output :
+            elif '1 received' in output :
                 print("ping response from "+arg)
         
 
