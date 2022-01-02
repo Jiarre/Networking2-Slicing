@@ -9,8 +9,12 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet,udp
 from ryu.lib.packet import ether_types
 
-
-class Controller(app_manager.RyuApp):
+"""
+    Controller Supporto IT - "ItSupport"
+    - 
+ 
+"""
+class ItSupport(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
@@ -18,9 +22,8 @@ class Controller(app_manager.RyuApp):
 
         self.mac_to_port = {1:{},2:{},3:{},4:{},5:{},6:{},7:{}}
         
-        
-        
 
+    # ??
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -41,6 +44,7 @@ class Controller(app_manager.RyuApp):
         datapath.send_msg(mod)
         self.logger.info("IT Flow added")
 
+
     def _send_package(self, msg, datapath, in_port, actions):
         data = None
         ofproto = datapath.ofproto
@@ -57,9 +61,12 @@ class Controller(app_manager.RyuApp):
         # self.logger.info("send_msg %s", out)
         datapath.send_msg(out)
 
+
+    # Callback gestione dei pacchetti
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         
+        # Variabili
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
@@ -69,27 +76,37 @@ class Controller(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)
         
+        # Ignore lldp packet if ...
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
-            # ignore lldp packet
             return
+
         dst = eth.dst
         src = eth.src
         
+        # Se ...
         flag = 0
         if src == "00:00:00:00:00:0c" or src == "00:00:00:00:00:0d":
             flag = 1
+
         # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
         self.logger.info("IT packet arrived in s%s (in_port=%s)", dpid, in_port)
+        
+        # === REGOLE === #
+        #
         if dpid in self.mac_to_port:
             self.mac_to_port[dpid][src] = in_port
-                
+            
+            #
             if dst in self.mac_to_port[dpid]:
                 out_port = self.mac_to_port[dpid][dst]
-                
+
+            #    
             else:
                 out_port = ofproto.OFPP_FLOOD
                 
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
+
+            # flooding 
             if out_port != ofproto.OFPP_FLOOD:
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,

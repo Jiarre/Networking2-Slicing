@@ -9,21 +9,24 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet,udp,tcp
 from ryu.lib.packet import ether_types
 
-
+"""
+    Controller principale - "Controller"
+    - pacchetti VOIP possono uscire dallo slice
+    - altri pacchetti vengono rimessi all'interno dello slice 
+"""
 class Controller(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__(*args, **kwargs)
 
-        # out_port = slice_to_port[dpid][in_port]
-        #self.mac_to_port = {4:{},5:{}}
         self.mac_to_port = {1:{}}
         self.slice_to_port = {
             1: {3:4,4:3,1:2,2:1,5:0,6:0}
         }
         
         self.end_switches = [4,5]
+
 
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
@@ -44,6 +47,7 @@ class Controller(app_manager.RyuApp):
         datapath.send_msg(mod)
         self.logger.info("CONTROLLER Flow added")
 
+
     def _send_package(self, msg, datapath, in_port, actions):
         data = None
         ofproto = datapath.ofproto
@@ -57,12 +61,14 @@ class Controller(app_manager.RyuApp):
             actions=actions,
             data=data,
         )
-        # self.logger.info("send_msg %s", out)
         datapath.send_msg(out)
 
+
+    # Callback gestione dei pacchetti
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         
+        # Variabili
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
@@ -72,45 +78,58 @@ class Controller(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)
         
+        # Check if ignore lldp packet 
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
-            # ignore lldp packet
             return
+
         dst = eth.dst
         src = eth.src
         self.logger.info("CONTROLLER packet arrived in s%s (in_port=%s)", dpid, in_port)
+        
+        # === REGOLE === #
+        # Pacchetto VOIP
         if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
                 self.logger.info("CONTROLLER Pacchetto VOIP")
+                
+                # sorgente o destinazione?
                 flag = 0
                 if pkt.get_protocol(udp.udp).dst_port == 5060:
                     flag = 1
            
+                # se la destinazione è conosciuta
                 if dst in self.mac_to_port[dpid]:
+                    # salvo la porta di output
                     out_port = self.mac_to_port[dpid][dst]
                 else:
+                    # altrimenti devo fare flooding
                     out_port = ofproto.OFPP_FLOOD
+                    
                 actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
                 
+                # setto i parametri se pacchetto in uscita o entrata
                 if flag == 1:
                     match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
-                        tp_dst = 5060,
+                        tp_dst = 5060,      # qui setto dst
                         dl_dst=dst,
                         dl_src=src  
                     )
                 else:
                     match = datapath.ofproto_parser.OFPMatch(
                         in_port=in_port,
-                        tp_src = 5060,
+                        tp_src = 5060,      # qui setto src
                         dl_dst=dst,
                         dl_src=src
                     )
+
                 if out_port != ofproto.OFPP_FLOOD:
-                
                     self.add_flow(datapath, 3, match, actions)
                 self._send_package(msg, datapath, in_port, actions)
+
+        # Pacchetto non VOIP, lo rimetto nel suo slice a seconda di slice_to_port
         elif dpid in self.mac_to_port:
             self.mac_to_port[dpid][src] = in_port
-            #self.logger.info(f"CONTROLLER Pacchetto GENERICO, porta {pkt.get_protocol(udp.udp)}")
+            
             out_port = self.slice_to_port[dpid][in_port]
             if out_port != 0:
                 self.logger.info("CONTROLLER invio pacchetto GENERICO")
@@ -121,7 +140,6 @@ class Controller(app_manager.RyuApp):
                         dl_src=src,
                         nw_proto=0x01
                     )
-                #self.add_flow(datapath, 1, match, actions)
                 self._send_package(msg, datapath, in_port, actions)
 
 

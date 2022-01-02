@@ -9,18 +9,19 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet, udp
 from ryu.lib.packet import ether_types
 
-
+"""
+    Controller Office 1 - "office1"
+    - agisce come un normale switch di livello 2
+"""
 class Office1(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
         super(Office1, self).__init__(*args, **kwargs)
 
-        # out_port = slice_to_port[dpid][in_port]
         self.mac_to_port = {2:{},3:{}}
         
         
-
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -54,12 +55,14 @@ class Office1(app_manager.RyuApp):
             actions=actions,
             data=data,
         )
-        # self.logger.info("send_msg %s", out)
         datapath.send_msg(out)
 
+
+    # Callback gestione dei pacchetti
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         
+        # Variabili
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
@@ -68,22 +71,19 @@ class Office1(app_manager.RyuApp):
 
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)
-        
+
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
-            # ignore lldp packet
             return
+
         dst = eth.dst
         src = eth.src
-        
-
-        # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
         self.logger.info("INFO packet arrived in s%s (in_port=%s)", dpid, in_port)
-        #if (pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).dst_port == 5096) or (pkt.get_protocol(udp.udp) and pkt.get_protocol(udp.udp).src_port == 5096):
-        
 
+        # === REGOLE === #
+        # Controllo se conosco le porte
         if dpid in self.mac_to_port:
             self.mac_to_port[dpid][src] = in_port
-            #self.logger.info("dest in {}, {}".format(dpid,self.mac_to_port[dpid]))
+            
             if dst in self.mac_to_port[dpid]:
                 out_port = self.mac_to_port[dpid][dst]
                 self.logger.info(
@@ -93,9 +93,12 @@ class Office1(app_manager.RyuApp):
                 )
                 
             else:
+                # altrimenti devo fare flooding
                 out_port = ofproto.OFPP_FLOOD
+
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
             
+            # flooding in azione
             if out_port != ofproto.OFPP_FLOOD:
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,
@@ -103,7 +106,8 @@ class Office1(app_manager.RyuApp):
                     dl_src=src
                     
                 )
-                self.add_flow(datapath, 1, match, actions)
+                self.(datapath, 1, match, actions)
+            
             self._send_package(msg, datapath, in_port, actions)
 
 

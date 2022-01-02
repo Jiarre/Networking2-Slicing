@@ -9,8 +9,12 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet,udp,tcp,ipv4
 from ryu.lib.packet import ether_types
 
-
-class Controller(app_manager.RyuApp):
+"""
+    Controller amministrazione - "Administration"
+    - permette la connessione a sftp
+    - permette il ping tra host
+"""
+class Administration(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
@@ -35,14 +39,15 @@ class Controller(app_manager.RyuApp):
             }
 
         }
+
+        # se arriva mshh su porta 2 lo esco su
         self.slice_to_port = {
             2:{2:1,1:2},
             4:{2:1,1:2}
         }
         
         self.end_switches = [2,4,7,6]
-        
-        
+
 
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
@@ -63,6 +68,7 @@ class Controller(app_manager.RyuApp):
         self.logger.info("Administration Flow added")
         datapath.send_msg(mod)
 
+
     def _send_package(self, msg, datapath, in_port, actions):
         data = None
         ofproto = datapath.ofproto
@@ -76,12 +82,14 @@ class Controller(app_manager.RyuApp):
             actions=actions,
             data=data,
         )
-        # self.logger.info("send_msg %s", out)
         datapath.send_msg(out)
 
+
+    # Callback gestione dei pacchetti
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         
+        # Variabili
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
@@ -94,8 +102,8 @@ class Controller(app_manager.RyuApp):
         tcpp = pkt.get_protocol(tcp.tcp)
         
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
-            # ignore lldp packet
             return
+
         dst = eth.dst
         src = eth.src
         flag = 0
@@ -103,21 +111,24 @@ class Controller(app_manager.RyuApp):
             flag = 1
     
         self.logger.info(f"ADM NOW switch {dpid} in port {in_port}")
-        # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
+        
+        # === REGOLE === #
         if (dpid in self.mac_to_port):
+            # 
             if dpid in self.slice_to_port and in_port in self.slice_to_port[dpid]:
                 self.logger.info("ADM sliced")
                 out_port = self.slice_to_port[dpid][in_port]
+            # 
             elif dst in self.mac_to_port[dpid] :
-
                 self.logger.info("ADM Pacchetto arrivato in endswitch")
                 out_port = self.mac_to_port[dpid][dst]
-                
-               
             else:
+                # altrimenti devo fare flood               
                 out_port = ofproto.OFPP_FLOOD
+                
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-            
+
+            # se e' destinazione        
             if flag == 1:
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,
@@ -126,18 +137,20 @@ class Controller(app_manager.RyuApp):
                     tp_dst = 22
                     )
             else:
+                # se invece è src
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,
                     dl_dst=dst,
                     dl_src=src,
                     tp_src = 22
                     )
-            if out_port!=ofproto.OFPP_FLOOD:
 
+            # se non devo fare flooding, allora ???
+            if out_port!=ofproto.OFPP_FLOOD:
                 self.add_flow(datapath, 2, match, actions)
-               
-               
             self._send_package(msg, datapath, in_port, actions)
+
+        # ...
         else:
             out_port = ofproto.OFPP_FLOOD
             self.logger.info("ADM Flooding")

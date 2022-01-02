@@ -18,9 +18,10 @@ while True:
                 connection.send(data)
             else:
                 break
+                
     except ConnectionResetError:
-        
         pass
+
     finally:
         # Clean up the connection
         connection.close()
