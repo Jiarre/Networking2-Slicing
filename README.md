@@ -1,6 +1,30 @@
 # Networking 2 project
 
+## Files description
+A brief description for each file in the repo:
+- `administration.py`: Ryu controller to handle administration slice 
+- `controller.py`: Ryu controller to handle voip communication
+- `flowvisor.sh`: bash script to load flowvisor configuration 
+- `it.py`: Ryu controller to handle IT Support slice
+- `mn_topo.py`
+- `office1.py`: Ryu controller to handle office 1 slice
+- `office2.py`: Ryu controller to handle office 2 slice
+- `office3.py`: Ryu controller to handle office 3 slice
+- `README.md`: this README file
+- `run_controllers.sh`: bash script to start Ryu controllers
+- `Schema Topologia.png`: graphical representation of network topology
+- `send.py`: Python script to test ping and iperf utilities
+- `sshsocket.py`: listener for ssh service
+- `voipsocket.py`: listener for voip service
+
+<br>
+
 ## How to Use
+- Start Vagrant
+```
+vagrant up comnetsemu
+```
+
 - Start mininet
 ```
 sudo python3 mn_topo.pt

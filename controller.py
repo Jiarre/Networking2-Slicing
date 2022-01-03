@@ -78,7 +78,6 @@ class Controller(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)
         
-        # Check if ignore lldp packet 
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
             return
 
@@ -95,7 +94,7 @@ class Controller(app_manager.RyuApp):
                 flag = 0
                 if pkt.get_protocol(udp.udp).dst_port == 5060:
                     flag = 1
-           
+
                 # se la destinazione è conosciuta
                 if dst in self.mac_to_port[dpid]:
                     # salvo la porta di output
@@ -134,12 +133,6 @@ class Controller(app_manager.RyuApp):
             if out_port != 0:
                 self.logger.info("CONTROLLER invio pacchetto GENERICO")
                 actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
-                match = datapath.ofproto_parser.OFPMatch(
-                        in_port=in_port,
-                        dl_dst=dst,
-                        dl_src=src,
-                        nw_proto=0x01
-                    )
                 self._send_package(msg, datapath, in_port, actions)
 
 
