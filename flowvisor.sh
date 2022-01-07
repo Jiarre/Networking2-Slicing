@@ -48,18 +48,12 @@ fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-voip-dst-port1 1 10
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-voip-src-port1 1 100 tp_src=5060 controller=7
 
-# Switch 1 FTP
 
 
 
-#Switch 1 Other traffic
 
-#fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-port1 1  controller=7
+#Switch VOIP
 
-
-#fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-port2 1 1 in_port=2 controller=7
-#fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-port3 1 1 in_port=3 controller=7
-#fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-port4 1 1 in_port=4 controller=7
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid2 2 100 tp_dst=5060 office1=7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid2 2 100 tp_src=5060 office1=7
@@ -78,13 +72,13 @@ fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid5 5 100 tp_src=5060 o
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid6 6 100 tp_dst=5060 office3=7
 
-fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid6 6 100 tp_src=5060 office3=7
+fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid6 6 100 tp_src=5060 office3=s7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid7 7 100 tp_dst=5060 it=7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid7 7 100 tp_src=5060 it=7
 
-# OTHER OFFICES PING
+#  PING & ARP
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1 1 1 any controller=7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid2 2 1 any office1=7
@@ -110,6 +104,8 @@ fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid5-arp 5 500 dl_type=2
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid6-arp 6 500 dl_type=2054  it=7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid7-arp 7 500 dl_type=2054  it=7
+
+# ADMINISTRATION SLICE
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-administration-dst 1 100 tp_dst=22 administration=7
 
@@ -139,7 +135,7 @@ fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid7-administration-dst 
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid7-administration-src 7 100 tp_src=22 administration=7
 
-## IT FLOWSPACE 0c e 0d
+## IT  0c e 0d
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid7-it1 7 200 eth_dst=00:00:00:00:00:0c it=7
 
@@ -196,6 +192,7 @@ fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-it2 1 200 eth_src=0
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-it3 1 200 eth_dst=00:00:00:00:00:0d it=7
 
 fvctl -f /etc/flowvisor/flowvisor.passwd add-flowspace dpid1-it4 1 200 eth_src=00:00:00:00:00:0d it=7
+
 
 
 # Check all the flowspaces added
