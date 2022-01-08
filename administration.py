@@ -18,7 +18,7 @@ class Administration(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(Controller, self).__init__(*args, **kwargs)
+        super(Administration, self).__init__(*args, **kwargs)
 
         # out_port = slice_to_port[dpid][in_port]
         #self.mac_to_port = {4:{},5:{}}

@@ -17,7 +17,7 @@ class Office3(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(Office2, self).__init__(*args, **kwargs)
+        super(Office3, self).__init__(*args, **kwargs)
 
         self.mac_to_port = {6:{}}
         self.end_switches = [6]

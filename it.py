@@ -18,7 +18,7 @@ class ItSupport(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
-        super(Controller, self).__init__(*args, **kwargs)
+        super(ItSupport, self).__init__(*args, **kwargs)
 
         self.mac_to_port = {1:{},2:{},3:{},4:{},5:{},6:{},7:{}}
         

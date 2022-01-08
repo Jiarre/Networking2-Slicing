@@ -106,7 +106,7 @@ class Office1(app_manager.RyuApp):
                     dl_src=src
                     
                 )
-                self.(datapath, 1, match, actions)
+                
             
             self._send_package(msg, datapath, in_port, actions)
 
