@@ -31,7 +31,7 @@ sudo python3 mn_topo.py
 
 - Move the controller scripts in the same folder as "run_controller.sh"
 ```
-mv office1.py office2.py office3.py administration.py it.py controller.py ~/Networking2/
+mv office1.py office2.py office3.py it.py controller.py ~/Networking2/
 ```
 
 - Put the flowvisor script into /home/vagrant/comnetsemu/app/realizing_network_slicing/slicing_scripts
