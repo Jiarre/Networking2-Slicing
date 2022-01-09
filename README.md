@@ -2,7 +2,6 @@
 
 ## Files description
 A brief description for each file in the repo:
-- `administration.py`: Ryu controller to handle administration slice 
 - `controller.py`: Ryu controller to handle voip communication
 - `flowvisor.sh`: bash script to load flowvisor configuration 
 - `it.py`: Ryu controller to handle IT Support slice

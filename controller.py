@@ -28,7 +28,7 @@ class Controller(app_manager.RyuApp):
             1: {3:4,4:3,1:2,2:1,5:5,6:6}
         }
 
-        # adinistration hosts mac address
+        # administration hosts mac address
         self.administration_mac = ["00:00:00:00:00:01","00:00:00:00:00:02","00:00:00:00:00:0e","00:00:00:00:00:0b","dc:a6:32:92:27:62","00:00:00:00:00:0c","00:00:00:00:00:0d"]
         
     
@@ -174,7 +174,7 @@ class Controller(app_manager.RyuApp):
             self._send_package(msg, datapath, in_port, actions)
 
 
-        # Pacchetto non VOIP
+        # Pacchetto non VOIP e non SFTP
         elif dpid in self.mac_to_port:
             # rimetto il pacchetto nel suo slice a seconda di slice_to_port
             self.mac_to_port[dpid][src] = in_port
