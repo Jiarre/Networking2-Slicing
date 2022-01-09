@@ -6,7 +6,7 @@ A brief description for each file in the repo:
 - `controller.py`: Ryu controller to handle voip communication
 - `flowvisor.sh`: bash script to load flowvisor configuration 
 - `it.py`: Ryu controller to handle IT Support slice
-- `mn_topo.py`
+- `mn_topo.py`: Network Topology
 - `office1.py`: Ryu controller to handle office 1 slice
 - `office2.py`: Ryu controller to handle office 2 slice
 - `office3.py`: Ryu controller to handle office 3 slice
@@ -27,10 +27,10 @@ vagrant up comnetsemu
 
 - Start mininet
 ```
-sudo python3 mn_topo.pt
+sudo python3 mn_topo.py
 ```
 
-- Move the 3 controller scripts in the same folder as "run_controller.sh"
+- Move the controller scripts in the same folder as "run_controller.sh"
 ```
 mv office1.py office2.py office3.py administration.py it.py controller.py ~/Networking2/
 ```
