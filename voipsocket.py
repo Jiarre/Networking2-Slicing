@@ -9,8 +9,6 @@ print("starting up on {} port {}".format(*server_address))
 sock.bind(server_address)
 
 # Listen for incoming connections
-
-
 while True:
     # Wait for a connection
     print("waiting for a connection")

@@ -20,15 +20,18 @@ class Controller(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__(*args, **kwargs)
 
+        # associazioni mac_address e porta switch
         self.mac_to_port = {1:{}}
+
+        # associazioni porte ingresso:uscita
         self.slice_to_port = {
             1: {3:4,4:3,1:2,2:1,5:5,6:6}
         }
+
+        # adinistration hosts mac address
         self.administration_mac = ["00:00:00:00:00:01","00:00:00:00:00:02","00:00:00:00:00:0e","00:00:00:00:00:0b","dc:a6:32:92:27:62","00:00:00:00:00:0c","00:00:00:00:00:0d"]
         
     
-
-
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -86,6 +89,7 @@ class Controller(app_manager.RyuApp):
         src = eth.src
         self.logger.info("CONTROLLER packet arrived in s%s (in_port=%s) dal src: %s dst: %s", dpid, in_port,src,dst)
         self.mac_to_port[dpid][src] = in_port
+
         # === REGOLE === #
         # Pacchetto VOIP
         if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
@@ -98,7 +102,7 @@ class Controller(app_manager.RyuApp):
 
                 # se la destinazione è conosciuta
                 if dst in self.mac_to_port[dpid]:
-                    # salvo la porta di output
+                    # prendo la porta di output
                     out_port = self.mac_to_port[dpid][dst]
                 else:
                     # altrimenti devo fare flooding
@@ -122,9 +126,13 @@ class Controller(app_manager.RyuApp):
                         dl_src=src
                     )
 
+                # vedo se aggiungere il flow
                 if out_port != ofproto.OFPP_FLOOD:
                     self.add_flow(datapath, 3, match, actions)
+                
                 self._send_package(msg, datapath, in_port, actions)
+
+        # Pacchetto SFTP
         if pkt.get_protocol(tcp.tcp) and ((pkt.get_protocol(tcp.tcp).dst_port == 22)or(pkt.get_protocol(tcp.tcp).src_port == 22)) and (src in self.administration_mac and dst in self.administration_mac):
             self.logger.info("CONTROLLER Pacchetto SFTP Administration")
             
@@ -135,7 +143,7 @@ class Controller(app_manager.RyuApp):
 
             # se la destinazione è conosciuta
             if dst in self.mac_to_port[dpid]:
-                # salvo la porta di output
+                # prendo la porta di output
                 out_port = self.mac_to_port[dpid][dst]
             else:
                 # altrimenti devo fare flooding
@@ -159,11 +167,16 @@ class Controller(app_manager.RyuApp):
                     dl_src=src
                 )
 
+            # vedo se aggiungere il flow
             if out_port != ofproto.OFPP_FLOOD:
                 self.add_flow(datapath, 3, match, actions)
+            
             self._send_package(msg, datapath, in_port, actions)
-        # Pacchetto non VOIP, lo rimetto nel suo slice a seconda di slice_to_port
+
+
+        # Pacchetto non VOIP
         elif dpid in self.mac_to_port:
+            # rimetto il pacchetto nel suo slice a seconda di slice_to_port
             self.mac_to_port[dpid][src] = in_port
             
             out_port = self.slice_to_port[dpid][in_port]

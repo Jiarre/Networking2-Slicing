@@ -22,7 +22,6 @@ class Office1(app_manager.RyuApp):
         self.mac_to_port = {2:{},3:{}}
 
         
-        
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -107,7 +106,6 @@ class Office1(app_manager.RyuApp):
                     
                 )
                 
-            
             self._send_package(msg, datapath, in_port, actions)
 
 

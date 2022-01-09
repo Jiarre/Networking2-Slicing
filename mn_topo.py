@@ -27,12 +27,13 @@ class LinuxRouter(Node):
 class Topology(Topo):
 
     def build(self):
-        
+        # aggiungo
         h11 = self.addHost("it1", ip="192.168.2.73/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:0c')
         h12 = self.addHost("it2", ip="192.168.2.74/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:0d')
 
         h1 = self.addHost("a3", ip="192.168.2.21/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:01')
         h2 = self.addHost("a4", ip="192.168.2.41/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:02')
+        
         h3 = self.addHost("h1", ip="192.168.2.22/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:03')
         h4 = self.addHost("h2", ip="192.168.2.31/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:04')
         h5 = self.addHost("h3", ip="192.168.2.32/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:05')
@@ -43,39 +44,41 @@ class Topology(Topo):
         h9 = self.addHost("a1", ip="192.168.3.61/24",defaultRoute='via 192.168.3.1',mac='00:00:00:00:00:09')
         h10 = self.addHost("a2", ip="192.168.3.62/24",defaultRoute='via 192.168.3.1',mac='00:00:00:00:00:0a')
 
-        
-
+        # aggiungo sftp
         h13 = self.addHost("sftp", ip="192.168.2.75/24",defaultRoute='via 192.168.2.1',mac='00:00:00:00:00:0b')
 
+        # aggiungo i router
         r1 = self.addHost("r1",cls=LinuxRouter,ip="192.168.2.1/24",mac='00:00:00:00:00:0e')
         r2 = self.addHost("r2",cls=LinuxRouter,ip="192.168.3.1/24",mac='00:00:00:00:00:0f')
         
-        
-
-
+        # aggiungo gli switch
         for i in range(7):
             sconfig = {"dpid": "%016x" % (i + 1)}
             self.addSwitch("s%d" % (i + 1), protocols="OpenFlow10", **sconfig)
 
-        #creo topologia a stella con controller in mezzo
+        # creo topologia a stella con controller in mezzo
         self.addLink("s1","s2")
         self.addLink("s1","s3")
         self.addLink("s1","s4")
         self.addLink("s1","s5")
-        #collego pc agli switch per office1
+        
+        # collego pc agli switch per office1
         self.addLink("s2","a3")
         self.addLink("s2","h1")
         self.addLink("s3","h2")
         self.addLink("s3","h3")
-        #collego pc agli switch per office2
+        
+        # collego pc agli switch per office2
         self.addLink("s4","a4")
         self.addLink("s4","h4")
         self.addLink("s5","h5")
         self.addLink("s5","h6")
-        #collego pc allo switch per office3
+        
+        # collego pc allo switch per office3
         self.addLink("s6","a1")
         self.addLink("s6","a2")
-        #collego ufficio it
+        
+        # collego ufficio it
         self.addLink("s7","it1")
         self.addLink("s7","it2")
         self.addLink("s7","sftp")
@@ -105,26 +108,29 @@ def runTopo():
     )
     controller = RemoteController("c1", ip="127.0.0.1", port=6633)
     net.addController(controller)
-    
     net.start()
+    
+    # creo il bridge per comunicare con il raspberry
     n = net.getNodeByName("s7")
     print("*** Setting up bridge network")
     time.sleep(0.1)
     n.cmd('sudo ovs-vsctl add-port s7 eth1')
+
+    # setup router
     net['r1'].cmd("sudo ip route add 192.168.3.0/24 via 10.100.0.2 dev r1-eth2")
     net['r2'].cmd("sudo ip route add 192.168.2.0/24 via 10.100.0.1 dev r2-eth2")
 
-    
+    # setup ssh socket in h5 e sftp    
     net['sftp'].cmd("python3 sshsocket.py &")
     net['h5'].cmd("python3 sshsocket.py &")
     time.sleep(0.3)
+
+    # setup voip socket
     voip = [net['h1'],net['h2'],net['h3'],net['h4'],net['h5'],net['h6'],net['a1'],net['a2'],net['a3'],net['a4'],net['it1'],net['it2']]
     for h in voip:
         h.cmd("python3 voipsocket.py &")
         time.sleep(0.1)
         print(f"Started {str(h)} socket")
-
-
 
     print("All socket started")
     n.cmd("hostname comnetsemu")
