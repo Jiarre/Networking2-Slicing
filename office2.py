@@ -20,7 +20,7 @@ class Office2(app_manager.RyuApp):
         super(Office2, self).__init__(*args, **kwargs)
 
         self.mac_to_port = {4:{},5:{}}
-        self.end_switches = [4,5]
+        
 
 
     def add_flow(self, datapath, priority, match, actions):
@@ -99,7 +99,6 @@ class Office2(app_manager.RyuApp):
             
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
             
-            # flooding in azione
             if out_port != ofproto.OFPP_FLOOD:
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,

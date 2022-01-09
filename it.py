@@ -23,7 +23,7 @@ class ItSupport(app_manager.RyuApp):
         self.mac_to_port = {1:{},2:{},3:{},4:{},5:{},6:{},7:{}}
         
 
-    # ??
+
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
@@ -76,19 +76,17 @@ class ItSupport(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)
         
-        # Ignore lldp packet if ...
+
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
             return
 
         dst = eth.dst
         src = eth.src
         
-        # Se ...
         flag = 0
         if src == "00:00:00:00:00:0c" or src == "00:00:00:00:00:0d":
             flag = 1
 
-        # self.logger.info("packet in s%s in_port=%s eth_src=%s eth_dst=%s pkt=%s udp=%s", dpid, in_port, src, dst, pkt, pkt.get_protocol(udp.udp))
         self.logger.info("IT packet arrived in s%s (in_port=%s)", dpid, in_port)
         
         # === REGOLE === #
@@ -106,7 +104,6 @@ class ItSupport(app_manager.RyuApp):
                 
             actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
 
-            # flooding 
             if out_port != ofproto.OFPP_FLOOD:
                 match = datapath.ofproto_parser.OFPMatch(
                     in_port=in_port,

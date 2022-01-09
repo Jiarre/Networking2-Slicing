@@ -51,8 +51,6 @@ class Topology(Topo):
         r2 = self.addHost("r2",cls=LinuxRouter,ip="192.168.3.1/24",mac='00:00:00:00:00:0f')
         
         
-        #prova1 = self.addHost("p1",ip="192.168.2.22/24")
-        #prova2 = self.addHost("p2",ip="192.168.2.22/24")
 
 
         for i in range(7):
@@ -64,8 +62,6 @@ class Topology(Topo):
         self.addLink("s1","s3")
         self.addLink("s1","s4")
         self.addLink("s1","s5")
-        #self.addLink("s2","s3")
-        #self.addLink("s4","s5")
         #collego pc agli switch per office1
         self.addLink("s2","a3")
         self.addLink("s2","h1")
@@ -76,10 +72,10 @@ class Topology(Topo):
         self.addLink("s4","h4")
         self.addLink("s5","h5")
         self.addLink("s5","h6")
-
+        #collego pc allo switch per office3
         self.addLink("s6","a1")
         self.addLink("s6","a2")
-
+        #collego ufficio it
         self.addLink("s7","it1")
         self.addLink("s7","it2")
         self.addLink("s7","sftp")
@@ -95,10 +91,7 @@ class Topology(Topo):
                      intfName2='r2-eth2',
                      params1={'ip': '10.100.0.1/24'},
                      params2={'ip': '10.100.0.2/24'})
-              
-        #test
-        #self.addLink("s1","p1")
-        #self.addLink("s1","p2")
+
 
 def runTopo():
     topo = Topology()
@@ -123,6 +116,7 @@ def runTopo():
 
     
     net['sftp'].cmd("python3 sshsocket.py &")
+    net['h5'].cmd("python3 sshsocket.py &")
     time.sleep(0.3)
     voip = [net['h1'],net['h2'],net['h3'],net['h4'],net['h5'],net['h6'],net['a1'],net['a2'],net['a3'],net['a4'],net['it1'],net['it2']]
     for h in voip:
@@ -137,10 +131,8 @@ def runTopo():
     
     CLI(net)
 
-    # After the user exits the CLI, shutdown the network.
     net.stop()
 
 if __name__ == '__main__':
-# This runs if this file is executed directly
     setLogLevel( 'info' )
     runTopo()

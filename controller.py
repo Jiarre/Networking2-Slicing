@@ -22,10 +22,11 @@ class Controller(app_manager.RyuApp):
 
         self.mac_to_port = {1:{}}
         self.slice_to_port = {
-            1: {3:4,4:3,1:2,2:1,5:0,6:0}
+            1: {3:4,4:3,1:2,2:1,5:5,6:6}
         }
+        self.administration_mac = ["00:00:00:00:00:01","00:00:00:00:00:02","00:00:00:00:00:0e","00:00:00:00:00:0b","dc:a6:32:92:27:62","00:00:00:00:00:0c","00:00:00:00:00:0d"]
         
-        self.end_switches = [4,5]
+    
 
 
     def add_flow(self, datapath, priority, match, actions):
@@ -83,13 +84,13 @@ class Controller(app_manager.RyuApp):
 
         dst = eth.dst
         src = eth.src
-        self.logger.info("CONTROLLER packet arrived in s%s (in_port=%s)", dpid, in_port)
-        
+        self.logger.info("CONTROLLER packet arrived in s%s (in_port=%s) dal src: %s dst: %s", dpid, in_port,src,dst)
+        self.mac_to_port[dpid][src] = in_port
         # === REGOLE === #
         # Pacchetto VOIP
         if pkt.get_protocol(udp.udp) and ((pkt.get_protocol(udp.udp).dst_port == 5060)or(pkt.get_protocol(udp.udp).src_port == 5060)):
                 self.logger.info("CONTROLLER Pacchetto VOIP")
-                
+                 
                 # sorgente o destinazione?
                 flag = 0
                 if pkt.get_protocol(udp.udp).dst_port == 5060:
@@ -124,7 +125,43 @@ class Controller(app_manager.RyuApp):
                 if out_port != ofproto.OFPP_FLOOD:
                     self.add_flow(datapath, 3, match, actions)
                 self._send_package(msg, datapath, in_port, actions)
+        if pkt.get_protocol(tcp.tcp) and ((pkt.get_protocol(tcp.tcp).dst_port == 22)or(pkt.get_protocol(tcp.tcp).src_port == 22)) and (src in self.administration_mac and dst in self.administration_mac):
+            self.logger.info("CONTROLLER Pacchetto SFTP Administration")
+            
+            # sorgente o destinazione?
+            flag = 0
+            if pkt.get_protocol(tcp.tcp).dst_port == 22:
+                flag = 1
 
+            # se la destinazione è conosciuta
+            if dst in self.mac_to_port[dpid]:
+                # salvo la porta di output
+                out_port = self.mac_to_port[dpid][dst]
+            else:
+                # altrimenti devo fare flooding
+                out_port = ofproto.OFPP_FLOOD
+                
+            actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
+            
+            # setto i parametri se pacchetto in uscita o entrata
+            if flag == 1:
+                match = datapath.ofproto_parser.OFPMatch(
+                    in_port=in_port,
+                    tp_dst = 22,      # qui setto dst
+                    dl_dst=dst,
+                    dl_src=src  
+                )
+            else:
+                match = datapath.ofproto_parser.OFPMatch(
+                    in_port=in_port,
+                    tp_src = 22,      # qui setto src
+                    dl_dst=dst,
+                    dl_src=src
+                )
+
+            if out_port != ofproto.OFPP_FLOOD:
+                self.add_flow(datapath, 3, match, actions)
+            self._send_package(msg, datapath, in_port, actions)
         # Pacchetto non VOIP, lo rimetto nel suo slice a seconda di slice_to_port
         elif dpid in self.mac_to_port:
             self.mac_to_port[dpid][src] = in_port
